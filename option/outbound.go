@@ -40,7 +40,7 @@ func (h *Outbound) UnmarshalJSONContext(ctx context.Context, content []byte) err
 	}
 	switch h.Type {
 	case C.TypeBlock, C.TypeDNS:
-		deprecated.Report(ctx, deprecated.OptionSpecialOutbounds)
+		//deprecated.Report(ctx, deprecated.OptionSpecialOutbounds)
 	}
 	options, loaded := registry.CreateOptions(h.Type)
 	if !loaded {

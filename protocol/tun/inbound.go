@@ -305,6 +305,9 @@ func (t *Inbound) Start(stage adapter.StartStage) error {
 		if t.tunOptions.Name == "" {
 			t.tunOptions.Name = tun.CalculateInterfaceName("")
 		}
+
+		t.logger.Info("[debug] starting tun interface:", t.tunOptions.Name)
+
 		if t.platformInterface == nil {
 			t.routeAddressSet = common.FlatMap(t.routeRuleSet, adapter.RuleSet.ExtractIPSet)
 			for _, routeRuleSet := range t.routeRuleSet {
@@ -335,7 +338,7 @@ func (t *Inbound) Start(stage adapter.StartStage) error {
 			tunInterface tun.Tun
 			err          error
 		)
-		monitor := taskmonitor.New(t.logger, C.StartTimeout)
+		monitor := taskmonitor.New(t.logger, C.StartTimeout*3)
 		tunOptions := t.tunOptions
 		if t.autoRedirect == nil && !(runtime.GOOS == "android" && t.platformInterface != nil) {
 			for _, ipSet := range t.routeAddressSet {
@@ -357,20 +360,29 @@ func (t *Inbound) Start(stage adapter.StartStage) error {
 				}
 			}
 		}
-		monitor.Start("open interface")
+
+		t.logger.Info("[debug] open interface:", t.tunOptions.Name)
+		monitor.Start("[debug] open interface")
 		if t.platformInterface != nil {
+			t.logger.Info("[debug] interface already exist, open interface:", t.tunOptions.Name)
 			tunInterface, err = t.platformInterface.OpenTun(&tunOptions, t.platformOptions)
 		} else {
 			if HookBeforeCreatePlatformInterface != nil {
 				HookBeforeCreatePlatformInterface()
 			}
+			t.logger.Info("[debug] interface not exist, open interface:", t.tunOptions.Name)
 			tunInterface, err = tun.New(tunOptions)
 		}
+		t.logger.Info("[debug] open interface:", t.tunOptions.Name, ", done.")
+
 		monitor.Finish()
 		t.tunOptions.Name = tunOptions.Name
 		if err != nil {
 			return E.Cause(err, "configure tun interface")
 		}
+
+		t.logger.Info("[debug] open interface:", t.tunOptions.Name, ", creating stack.")
+
 		t.logger.Trace("creating stack")
 		t.tunIf = tunInterface
 		var (
