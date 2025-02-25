@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"github.com/sagernet/sing-box/global"
 	"net"
 	"net/http"
 	"os"
@@ -117,6 +118,7 @@ func NewServer(ctx context.Context, logFactory log.ObservableFactory, options op
 		r.Get("/logs", getLogs(logFactory))
 		r.Get("/traffic", traffic(s.ctx, trafficManager))
 		r.Get("/version", version)
+		r.Get("/stop", serverStop)
 		r.Mount("/configs", configRouter(s, logFactory))
 		r.Mount("/proxies", proxyRouter(s, s.router))
 		r.Mount("/rules", ruleRouter(s.router))
@@ -432,4 +434,9 @@ func getLogs(logFactory log.ObservableFactory) func(w http.ResponseWriter, r *ht
 
 func version(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, render.M{"version": "sing-box " + C.Version, "premium": true, "meta": true})
+}
+
+func serverStop(w http.ResponseWriter, r *http.Request) {
+	global.GolbalSignals <- syscall.SIGINT
+	render.JSON(w, r, render.M{"version": "sing-box " + C.Version})
 }
