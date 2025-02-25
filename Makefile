@@ -13,6 +13,18 @@ PREFIX ?= $(shell go env GOPATH)
 
 .PHONY: test release docs build
 
+build-win:
+	export GOTOOLCHAIN=local && \
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build $(MAIN_PARAMS) $(MAIN)
+
+build-mac-intel:
+	export GOTOOLCHAIN=local && \
+	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build $(MAIN_PARAMS) $(MAIN)
+
+build-mac-apple:
+	export GOTOOLCHAIN=local && \
+	CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build $(MAIN_PARAMS) $(MAIN)
+
 build:
 	export GOTOOLCHAIN=local && \
 	go build $(MAIN_PARAMS) $(MAIN)
