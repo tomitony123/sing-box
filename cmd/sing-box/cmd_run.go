@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/sagernet/sing-box/global"
 	"io"
 	"os"
 	"os/signal"
@@ -167,7 +168,8 @@ func create() (*box.Box, context.CancelFunc, error) {
 }
 
 func run() error {
-	osSignals := make(chan os.Signal, 1)
+	//osSignals := make(chan os.Signal, 1)
+	osSignals := global.GolbalSignals
 	signal.Notify(osSignals, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 	defer signal.Stop(osSignals)
 	for {
@@ -178,6 +180,7 @@ func run() error {
 		runtimeDebug.FreeOSMemory()
 		for {
 			osSignal := <-osSignals
+			log.Info("handle osSignal:", osSignal.String())
 			if osSignal == syscall.SIGHUP {
 				err = check()
 				if err != nil {
